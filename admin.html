@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — CS Conferences</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #060912; --surface: #0d1321; --surface2: #131929;
+      --border: rgba(255,255,255,0.07); --text: #e8ecf4; --muted: #6b7a99;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* BG */
+    .bg-orbs { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.12; }
+    .orb1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; }
+    .orb2 { width: 400px; height: 400px; background: #06b6d4; bottom: -100px; right: -100px; }
+
+    /* AUTH */
+    #admin-login {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(6,9,18,0.95); backdrop-filter: blur(20px);
+      padding: 24px;
+    }
+    #admin-login.hidden { display: none; }
+    .login-box {
+      background: var(--surface); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px; padding: 44px 40px; width: 100%; max-width: 400px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+      animation: up .4s ease;
+    }
+    @keyframes up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+    .login-icon {
+      width: 52px; height: 52px; border-radius: 16px;
+      background: rgba(99,102,241,0.15);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .login-box h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
+    .login-box p { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: #9aa3b8; margin-bottom: 7px; }
+    .form-group input {
+      width: 100%; padding: 11px 14px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; color: #fff; font-size: 14px; font-family: inherit;
+      outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    .form-group input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .form-group input::placeholder { color: #4a556e; }
+    .btn {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border: none; border-radius: 10px;
+      color: #fff; font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: opacity .2s;
+    }
+    .btn:hover { opacity: .88; }
+    .error-msg {
+      font-size: 12px; color: #f87171;
+      background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2);
+      border-radius: 8px; padding: 9px 12px; margin-bottom: 14px; display: none;
+    }
+    .error-msg.show { display: block; }
+
+    /* DASHBOARD */
+    #dashboard { display: none; position: relative; z-index: 1; }
+    #dashboard.show { display: block; }
+
+    /* NAVBAR */
+    .navbar {
+      background: rgba(6,9,18,0.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 32px; position: sticky; top: 0; z-index: 10;
+    }
+    .nav-brand { font-size: 15px; font-weight: 800; }
+    .nav-brand span { color: #f87171; }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
+    .nav-badge {
+      font-size: 11px; font-weight: 700; padding: 4px 10px;
+      background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 100px; color: #f87171; letter-spacing: .4px;
+    }
+    .logout-btn {
+      font-size: 12px; font-weight: 600; padding: 7px 16px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--surface2); color: var(--muted);
+      cursor: pointer; font-family: inherit; transition: all .2s;
+    }
+    .logout-btn:hover { color: #fff; border-color: rgba(255,255,255,.2); }
+
+    /* MAIN */
+    .main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* STATS ROW */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 36px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px;
+    }
+    .stat-card .label { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .4px; margin-bottom: 8px; }
+    .stat-card .value { font-size: 2rem; font-weight: 800; color: #fff; }
+    .stat-card .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* SECTION HEADER */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+    }
+    .section-header h2 { font-size: 1.1rem; font-weight: 700; }
+    .search-input {
+      padding: 8px 14px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 9px; color: #fff; font-size: 13px; font-family: inherit;
+      outline: none; width: 220px; transition: border-color .2s;
+    }
+    .search-input:focus { border-color: rgba(99,102,241,.5); }
+    .search-input::placeholder { color: #4a556e; }
+
+    /* TABLE */
+    .table-wrap {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--surface2); }
+    th { padding: 13px 18px; text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .6px; text-transform: uppercase; }
+    td { padding: 14px 18px; font-size: 13px; border-top: 1px solid var(--border); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-cell { display: flex; align-items: center; gap: 10px; }
+    .user-name { font-weight: 600; color: #fff; }
+    .user-email { font-size: 12px; color: var(--muted); }
+    .date-cell { color: var(--muted); font-size: 12px; }
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--muted);
+    }
+    .empty-state svg { opacity: .3; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* DELETE btn */
+    .del-btn {
+      font-size: 11px; padding: 4px 10px; border-radius: 7px;
+      border: 1px solid rgba(248,113,113,0.25); color: #f87171;
+      background: rgba(248,113,113,0.08); cursor: pointer; font-family: inherit; transition: all .2s;
+    }
+    .del-btn:hover { background: rgba(248,113,113,0.2); }
+
+    @media (max-width: 640px) {
+      .navbar { padding: 12px 16px; }
+      .main { padding: 24px 16px 60px; }
+      .search-input { width: 100%; margin-top: 10px; }
+      .section-header { flex-direction: column; align-items: flex-start; }
+      th:nth-child(3), td:nth-child(3),
+      th:nth-child(4), td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-orbs">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="admin-login">
+  <div class="login-box">
+    <div class="login-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+    <h1>Admin Access</h1>
+    <p>Enter the admin password to view registered users</p>
+    <div class="error-msg" id="admin-error"></div>
+    <div class="form-group">
+      <label>Admin Password</label>
+      <input type="password" id="admin-pass" placeholder="Enter admin password" />
+    </div>
+    <button class="btn" onclick="adminLogin()">Access Dashboard</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <nav class="navbar">
+    <div class="nav-brand">Admin <span>Panel</span></div>
+    <div class="nav-right">
+      <div class="nav-badge">ADMIN</div>
+      <button class="logout-btn" onclick="adminLogout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="label">TOTAL USERS</div>
+        <div class="value" id="stat-total">0</div>
+        <div class="sub">registered accounts</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">TODAY</div>
+        <div class="value" id="stat-today">0</div>
+        <div class="sub">new signups</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">THIS WEEK</div>
+        <div class="value" id="stat-week">0</div>
+        <div class="sub">new signups</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="section-header">
+      <h2>Registered Users</h2>
+      <input class="search-input" id="search" placeholder="Search by name or email..." oninput="renderTable()" />
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Registered</th>
+            <th>Last Login</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ADMIN_PASSWORD = 'admin@2025';
+
+  function adminLogin() {
+    const pass = document.getElementById('admin-pass').value;
+    if (pass !== ADMIN_PASSWORD) {
+      const el = document.getElementById('admin-error');
+      el.textContent = 'Incorrect password. Try again.';
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3500);
+      return;
+    }
+    sessionStorage.setItem('admin_auth', '1');
+    showDashboard();
+  }
+
+  function adminLogout() {
+    sessionStorage.removeItem('admin_auth');
+    document.getElementById('dashboard').classList.remove('show');
+    document.getElementById('admin-login').classList.remove('hidden');
+    document.getElementById('admin-pass').value = '';
+  }
+
+  function showDashboard() {
+    document.getElementById('admin-login').classList.add('hidden');
+    document.getElementById('dashboard').classList.add('show');
+    renderStats();
+    renderTable();
+  }
+
+  function getUsers() {
+    return JSON.parse(localStorage.getItem('conf_users') || '[]');
+  }
+
+  function renderStats() {
+    const users = getUsers();
+    const now   = new Date();
+    const today = now.toDateString();
+    const weekAgo = new Date(now - 7 * 86400000);
+    document.getElementById('stat-total').textContent = users.length;
+    document.getElementById('stat-today').textContent = users.filter(u => new Date(u.registeredAt).toDateString() === today).length;
+    document.getElementById('stat-week').textContent  = users.filter(u => new Date(u.registeredAt) >= weekAgo).length;
+  }
+
+  function renderTable() {
+    const users  = getUsers();
+    const query  = document.getElementById('search').value.toLowerCase();
+    const tbody  = document.getElementById('users-tbody');
+    const filtered = users.filter(u =>
+      u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)
+    );
+
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <p>${users.length === 0 ? 'No users have registered yet.' : 'No users match your search.'}</p>
+      </div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.slice().reverse().map(u => {
+      const initials = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+      const regDate  = new Date(u.registeredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const loginDate = u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+      return `
+        <tr>
+          <td><div class="user-cell">
+            <div class="avatar">${initials}</div>
+            <div><div class="user-name">${u.name}</div></div>
+          </div></td>
+          <td class="user-email">${u.email}</td>
+          <td class="date-cell">${regDate}</td>
+          <td class="date-cell">${loginDate}</td>
+          <td><button class="del-btn" onclick="deleteUser('${u.email}')">Remove</button></td>
+        </tr>`;
+    }).join('');
+  }
+
+  function deleteUser(email) {
+    if (!confirm(`Remove user ${email}?`)) return;
+    const users = getUsers().filter(u => u.email !== email);
+    localStorage.setItem('conf_users', JSON.stringify(users));
+    renderStats();
+    renderTable();
+  }
+
+  document.getElementById('admin-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') adminLogin();
+  });
+
+  // Auto-login if session exists
+  if (sessionStorage.getItem('admin_auth') === '1') showDashboard();
+</script>
+</body>
+</html>

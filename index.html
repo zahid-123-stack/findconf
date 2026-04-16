@@ -262,9 +262,184 @@
       .hero h1 { font-size: 2rem; }
       .stats { gap: 24px; }
     }
+
+    /* ── AUTH WALL ── */
+    #auth-wall {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(6,9,18,0.92);
+      backdrop-filter: blur(18px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #auth-wall.hidden { display: none; }
+
+    .auth-box {
+      background: #0d1321;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 44px 40px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+      animation: slideUp .4s ease;
+    }
+    @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:none} }
+
+    .auth-logo {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 28px;
+    }
+    .auth-logo-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: rgba(99,102,241,0.2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .auth-logo-text { font-size: 15px; font-weight: 700; color: #fff; }
+    .auth-logo-text span { color: #a5b4fc; }
+
+    .auth-tabs {
+      display: flex; gap: 4px;
+      background: #131929; border-radius: 12px; padding: 4px;
+      margin-bottom: 28px;
+    }
+    .auth-tab {
+      flex: 1; text-align: center; padding: 9px;
+      border-radius: 9px; font-size: 13px; font-weight: 600;
+      cursor: pointer; color: var(--muted); transition: all .2s;
+    }
+    .auth-tab.active { background: #1e2a45; color: #fff; }
+
+    .auth-title { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: #9aa3b8; margin-bottom: 7px; letter-spacing: .3px; }
+    .form-group input {
+      width: 100%; padding: 11px 14px;
+      background: #131929; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; color: #fff; font-size: 14px; font-family: inherit;
+      transition: border-color .2s, box-shadow .2s; outline: none;
+    }
+    .form-group input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .form-group input::placeholder { color: #4a556e; }
+
+    .auth-btn {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border: none; border-radius: 10px;
+      color: #fff; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: opacity .2s, transform .15s;
+      margin-top: 4px; font-family: inherit;
+    }
+    .auth-btn:hover { opacity: .9; transform: translateY(-1px); }
+    .auth-btn:active { transform: translateY(0); }
+
+    .auth-error {
+      font-size: 12px; color: #f87171;
+      background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2);
+      border-radius: 8px; padding: 9px 12px;
+      margin-bottom: 14px; display: none;
+    }
+    .auth-error.show { display: block; }
+    .auth-success {
+      font-size: 12px; color: #6ee7b7;
+      background: rgba(110,231,183,0.1); border: 1px solid rgba(110,231,183,0.2);
+      border-radius: 8px; padding: 9px 12px;
+      margin-bottom: 14px; display: none;
+    }
+    .auth-success.show { display: block; }
+
+    /* ── TOPBAR (logged in) ── */
+    #topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(6,9,18,0.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 28px;
+    }
+    #topbar.hidden { display: none; }
+    .topbar-left { font-size: 14px; font-weight: 700; color: #fff; }
+    .topbar-left span { color: #a5b4fc; }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+    .topbar-user { font-size: 13px; color: var(--muted); }
+    .topbar-user strong { color: #fff; }
+    .logout-btn {
+      font-size: 12px; font-weight: 600; padding: 6px 14px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--surface2); color: var(--muted);
+      cursor: pointer; transition: all .2s; font-family: inherit;
+    }
+    .logout-btn:hover { color: #fff; border-color: rgba(255,255,255,.2); }
+
+    body.logged-in main { padding-top: 60px; }
   </style>
 </head>
 <body>
+
+<!-- TOPBAR -->
+<div id="topbar" class="hidden">
+  <div class="topbar-left">CS Conferences <span>/ AI & Beyond</span></div>
+  <div class="topbar-right">
+    <div class="topbar-user">Signed in as <strong id="topbar-name"></strong></div>
+    <button class="logout-btn" onclick="logout()">Sign out</button>
+  </div>
+</div>
+
+<!-- AUTH WALL -->
+<div id="auth-wall">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/>
+          <path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>
+        </svg>
+      </div>
+      <div class="auth-logo-text">CS<span>Conferences</span></div>
+    </div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchTab('login')">Sign In</div>
+      <div class="auth-tab" onclick="switchTab('register')">Create Account</div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="login-form">
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to explore top CS conferences</div>
+      <div class="auth-error" id="login-error"></div>
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" id="login-email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Enter your password" />
+      </div>
+      <button class="auth-btn" onclick="login()">Sign In</button>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="register-form" style="display:none">
+      <div class="auth-title">Create account</div>
+      <div class="auth-sub">Join to discover AI & ML conferences</div>
+      <div class="auth-error" id="register-error"></div>
+      <div class="auth-success" id="register-success"></div>
+      <div class="form-group">
+        <label>Full name</label>
+        <input type="text" id="reg-name" placeholder="Your full name" />
+      </div>
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" id="reg-email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Min. 6 characters" />
+      </div>
+      <button class="auth-btn" onclick="register()">Create Account</button>
+    </div>
+  </div>
+</div>
 
 <div class="bg-orbs">
   <div class="orb orb1"></div>
@@ -746,6 +921,83 @@
 </footer>
 
 <script>
+  /* ── AUTH LOGIC ── */
+  function getUsers() { return JSON.parse(localStorage.getItem('conf_users') || '[]'); }
+  function saveUsers(u) { localStorage.setItem('conf_users', JSON.stringify(u)); }
+  function getSession() { return JSON.parse(sessionStorage.getItem('conf_session') || 'null'); }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+    document.getElementById('login-form').style.display    = tab === 'login'    ? '' : 'none';
+    document.getElementById('register-form').style.display = tab === 'register' ? '' : 'none';
+  }
+
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 4000);
+  }
+
+  function login() {
+    const email    = document.getElementById('login-email').value.trim().toLowerCase();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) return showError('login-error', 'Please fill in all fields.');
+    const users = getUsers();
+    const user  = users.find(u => u.email === email && u.password === password);
+    if (!user) return showError('login-error', 'Invalid email or password.');
+    // update lastLogin
+    user.lastLogin = new Date().toISOString();
+    saveUsers(users);
+    sessionStorage.setItem('conf_session', JSON.stringify({ name: user.name, email: user.email }));
+    showApp(user.name);
+  }
+
+  function register() {
+    const name     = document.getElementById('reg-name').value.trim();
+    const email    = document.getElementById('reg-email').value.trim().toLowerCase();
+    const password = document.getElementById('reg-password').value;
+    if (!name || !email || !password) return showError('register-error', 'Please fill in all fields.');
+    if (password.length < 6) return showError('register-error', 'Password must be at least 6 characters.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('register-error', 'Please enter a valid email.');
+    const users = getUsers();
+    if (users.find(u => u.email === email)) return showError('register-error', 'An account with this email already exists.');
+    users.push({ name, email, password, registeredAt: new Date().toISOString(), lastLogin: new Date().toISOString() });
+    saveUsers(users);
+    sessionStorage.setItem('conf_session', JSON.stringify({ name, email }));
+    showApp(name);
+  }
+
+  function showApp(name) {
+    document.getElementById('auth-wall').classList.add('hidden');
+    document.getElementById('topbar').classList.remove('hidden');
+    document.getElementById('topbar-name').textContent = name;
+    document.body.classList.add('logged-in');
+  }
+
+  function logout() {
+    sessionStorage.removeItem('conf_session');
+    document.getElementById('auth-wall').classList.remove('hidden');
+    document.getElementById('topbar').classList.add('hidden');
+    document.body.classList.remove('logged-in');
+  }
+
+  // Check session on load
+  window.addEventListener('DOMContentLoaded', () => {
+    const session = getSession();
+    if (session) showApp(session.name);
+  });
+
+  // Allow Enter key on inputs
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const lf = document.getElementById('login-form');
+      const rf = document.getElementById('register-form');
+      if (lf.style.display !== 'none') login();
+      else register();
+    }
+  });
+
+  /* ── FILTER & CARD LOGIC ── */
   const pills = document.querySelectorAll('.pill');
   const cards = document.querySelectorAll('.card');
 
